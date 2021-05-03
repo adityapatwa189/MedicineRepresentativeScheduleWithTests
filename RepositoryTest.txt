@@ -1,0 +1,54 @@
+using MedicineRepresentativeSchedule.Controllers;
+using MedicineRepresentativeSchedule.Models;
+using MedicineRepresentativeSchedule.Service;
+using MedicineRepresentativeSchedule.Repository;
+using MedicineRepresentativeSchedule.Provider;
+using Microsoft.AspNetCore.Mvc;
+using Moq;
+using NUnit.Framework;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using MedicineRepresentativeSchedule.Data_Access_Layer;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
+
+namespace Tests
+{
+    class RepositoryTests
+    {
+        Mock<RepScheduleEntity> Context;
+        List<Doctor> doctors;
+        [SetUp]
+        public void SetUp()
+        {
+            
+            doctors = new List<Doctor>()
+             {
+               new Doctor { Name = "doc1",ContactNumber="0987654321" , TreatingAilment="Orthopaedics"},
+               new Doctor { Name = "doc2",ContactNumber="0987654321" , TreatingAilment="General"},
+               new Doctor { Name = "doc3",ContactNumber="0987654321" , TreatingAilment="Gynecology"},
+               new Doctor { Name = "doc4",ContactNumber="0987654321" , TreatingAilment="Orthopaedics"}
+            };
+            Context = new Mock<RepScheduleEntity>();
+            var queryable=doctors.AsQueryable();
+            var MockSet = new Mock<DbSet<Doctor>>();
+
+            MockSet.As<IQueryable<Doctor>>().Setup(m => m.Provider).Returns(queryable.Provider);
+            MockSet.As<IQueryable<Doctor>>().Setup(m => m.Expression).Returns(queryable.Expression);
+            MockSet.As<IQueryable<Doctor>>().Setup(m => m.ElementType).Returns(queryable.ElementType);
+            MockSet.As<IQueryable<Doctor>>().Setup(m => m.GetEnumerator()).Returns(queryable.GetEnumerator());
+
+            Context.Setup(c => c.Doctors).Returns(MockSet.Object);
+
+        }
+
+        [Test]
+        public void GetDoctorDTOList_OnCalling_returnsDoctorsList() 
+        {
+            IDoctorRepository doctorRepository = new DoctorRepository(Context.Object);
+            var result = doctorRepository.GetDoctorDTOList();
+            Assert.IsNotNull(result);
+        }
+    }
+}
